@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qgx.dao.BlogCategoryDao">
+
+	<resultMap type="BlogCategory" id="BlogCategoryResult">
+		<result property="id" column="id"/>
+		<result property="categoryName" column="categoryName"/>
+		<result property="blogCount" column="blogCount" />
+		<result property="priority" column="priority"/>
+	</resultMap>
+	
+	<select id="listBlogCategory"  resultMap="BlogCategoryResult">
+		select t1.id,t1.categoryName,count(t2.id) as blogCount  from t_blog_category t1
+		left join t_blog t2 on t1.id = t2.categoryId group  by  t1.categoryName  order by t1.priority
+	</select>
+
+	<select id="listBlogCategoryByPage" parameterType="Map"  resultMap="BlogCategoryResult">
+		SELECT t1.id,t1.categoryName,COUNT(t2.id) AS blogCount,t1.priority  FROM t_blog_category t1
+		LEFT JOIN t_blog t2 ON t1.id = t2.categoryId
+         GROUP BY  t1.categoryName ORDER BY Id
+         <if test="size != null and start != null">
+			 limit #{start},#{size}
+		 </if>
+	</select>
+
+	<select id="countBlogCategory" resultType="Integer" parameterType="Map">
+		select count(*) from t_blog_category
+		<if test="size != null and start != null">
+			limit #{start},#{size}
+		</if>
+	</select>
+
+	<insert id="saveBlogCategory"  parameterType="BlogCategory" >
+		insert into t_blog_category values (null,#{categoryName},#{priority})
+	</insert>
+
+	<update id="updateBlogCategory" parameterType="BlogCategory">
+		update t_blog_category
+		<set>
+			<if test="categoryName != null and categoryName != ''">
+				categoryName = #{categoryName},
+			</if>
+			<if test="priority != null and priority != ''">
+				priority = #{priority}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<select id="getBlogCategoryById" parameterType="Integer" resultMap="BlogCategoryResult">
+		select * from t_blog_category where id = #{id}
+	</select>
+
+	<delete id="deleteBlogCategory" parameterType="Integer">
+		delete from t_blog_category where id = #{id}
+	</delete>
+</mapper> 

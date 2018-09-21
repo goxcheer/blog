@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qgx.dao.BlogDao">
+
+	<resultMap type="Blog" id="BlogResult">
+		<result property="id" column="id"/>
+		<result property="title" column="title"/>
+		<result property="summary" column="summary" />
+		<result property="releaseDate" column="releaseDate" />
+		<result property="clickCount" column="clickCount" />
+		<result property="replyCount" column="replyCount" />
+		<result property="content" column="content" />
+		<result property="keyWord" column="keyWord" />
+		<result property="blogCount" column="blogCount" />
+		<result property="releaseDateStr" column="releaseDateStr" />
+
+		<association property="blogCategory" column="categoryId" select="com.qgx.dao.BlogCategoryDao.getBlogCategoryById"/>
+	</resultMap>
+
+	<select id="listDateCategory"  resultMap="BlogResult">
+		select DATE_FORMAT(releaseDate,'%Y年%m月') as releaseDateStr ,count(*) as blogCount from t_blog
+		group by  DATE_FORMAT(releaseDate,'%Y年%m月')
+		order by DATE_FORMAT(releaseDate,'%Y年%m月') desc
+	</select>
+
+	<select id="listBlog" parameterType="Map" resultMap="BlogResult">
+		select * from t_blog
+		<where>
+			<if test="categoryId!=null and categoryId!=''">
+				and categoryId = #{categoryId}
+			</if>
+			<if test="releaseDateStr!=null and releaseDateStr!=''">
+				and DATE_FORMAT(releaseDate,'%Y年%m月') = #{releaseDateStr}
+			</if>
+			<if test="title!=null and title!=''">
+				and title like #{title}
+			</if>
+		</where>
+		order by releaseDate desc
+		<if test="start!=null and size!=null">
+			limit #{start},#{size}
+		</if>
+	</select>
+
+	<select id="countBlog" parameterType="Map"  resultType="Integer">
+			  select count(*) from t_blog
+		<where>
+			<if test="categoryId!=null and categoryId!=''">
+				and categoryId = #{categoryId}
+			</if>
+			<if test="releaseDateStr!=null and releaseDateStr!=''">
+				and DATE_FORMAT(releaseDate,'%Y年%m月') = #{releaseDateStr}
+			</if>
+			<if test="title!=null and title!=''">
+				and title like #{title}
+			</if>
+		</where>
+	</select>
+
+	<select id="getBlogById" parameterType="Integer" resultMap="BlogResult">
+		select *,DATE_FORMAT(releaseDate,'%Y年%m月') as releaseDateStr from t_blog where id = #{id}
+	</select>
+
+	<update id="updateBlog" parameterType="Blog" >
+		update t_blog
+		<set>
+			<if test="title!=null and title!=''">
+				title=#{title},
+			</if>
+			<if test="summary!=null and summary!=''">
+				summary=#{summary},
+			</if>
+			<if test="content!=null and content!=''">
+				content=#{content},
+			</if>
+			<if test="blogCategory.id!=null">
+				categoryId=#{blogCategory.id},
+			</if>
+			<if test="clickCount!=null">
+				clickCount=#{clickCount},
+			</if>
+			<if test="replyCount!=null">
+				replyCount=#{replyCount},
+			</if>
+			<if test="keyWord!=null and keyWord!=''">
+				keyWord=#{keyWord},
+			</if>
+			<if test="praiseCount!=null">
+				praiseCount=#{praiseCount}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<select id="getLastBlogById" parameterType="Integer" resultMap="BlogResult">
+		select * from t_blog where id &lt; #{id} order by id desc limit 1;
+	</select>
+
+	<select id="getNextBlogById" parameterType="Integer" resultMap="BlogResult">
+		select * from t_blog where id &gt; #{id} order by id asc limit 1;
+	</select>
+
+	<insert id="saveBlog" parameterType="Blog" useGeneratedKeys="true" keyProperty="id">
+		insert into t_blog values(null,#{title},#{summary},now(),0,0,#{content},#{blogCategory.id},#{keyWord},0)
+	</insert>
+
+	<select id="listBlogByClickCount" resultMap="BlogResult">
+		select * from t_blog  ORDER BY clickCount DESC LIMIT 8
+	</select>
+
+	<delete id="deleteBlog" parameterType="Integer" >
+		delete  from t_blog where id = #{id}
+	</delete>
+
+	<update id="updatePraise" parameterType="Integer" >
+		update t_blog set praiseCount = praiseCount + 1 where id = #{id}
+	</update>
+</mapper> 

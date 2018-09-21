@@ -1,0 +1,8 @@
+.result *{
+    font-size: 100px;
+    vertical-align: middle;
+    font-weight: lighter;
+}
+.result img {
+    border: none;
+}
